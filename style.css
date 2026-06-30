@@ -247,6 +247,15 @@ text-decoration:none;
 
 section:not(.hero){
 padding:100px 20px;
+
+background:
+linear-gradient(
+rgba(251,247,237,.94),
+rgba(251,247,237,.94)
+),
+url(images/hero-bg.jpg)
+center center / cover
+no-repeat;
 }
 
 
@@ -448,14 +457,6 @@ rgba(0,0,0,.13);
 
 .album{
 overflow:hidden;
-
-background:
-linear-gradient(
-rgba(251,247,237,.94),
-rgba(251,247,237,.94)
-),
-url(images/hero-bg.jpg)
-center / cover;
 }
 
 .album-subtitle{
