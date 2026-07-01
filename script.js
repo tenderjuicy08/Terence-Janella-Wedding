@@ -2,7 +2,9 @@ document.addEventListener(
 "DOMContentLoaded",
 function(){
 
-/* BACKGROUND MUSIC */
+/* ========================================
+BACKGROUND MUSIC
+======================================== */
 
 const music =
 document.getElementById("music");
@@ -10,7 +12,127 @@ document.getElementById("music");
 const musicButton =
 document.getElementById("musicButton");
 
-let musicPlaying = false;
+let musicWasManuallyPaused = false;
+
+/* UPDATE MUSIC BUTTON TEXT */
+
+function updateMusicButton(){
+
+if(!music || !musicButton){
+return;
+}
+
+if(music.paused){
+
+musicButton.textContent =
+"🎵 Play Music";
+
+}else{
+
+musicButton.textContent =
+"⏸ Pause Music";
+
+}
+
+}
+
+/* REMOVE FIRST-INTERACTION LISTENERS */
+
+function removeMusicInteractionListeners(){
+
+document.removeEventListener(
+"click",
+startMusicOnFirstInteraction
+);
+
+document.removeEventListener(
+"keydown",
+startMusicOnFirstInteraction
+);
+
+}
+
+/* TRY TO PLAY THE MUSIC */
+
+async function startMusic(){
+
+if(!music){
+return false;
+}
+
+try{
+
+await music.play();
+
+musicWasManuallyPaused = false;
+
+updateMusicButton();
+
+removeMusicInteractionListeners();
+
+return true;
+
+}catch(error){
+
+if(musicButton){
+
+musicButton.textContent =
+"🎵 Tap to Play Music";
+
+}
+
+return false;
+
+}
+
+}
+
+/* START MUSIC AFTER FIRST CLICK OR TAP */
+
+async function startMusicOnFirstInteraction(event){
+
+if(musicWasManuallyPaused){
+return;
+}
+
+/* LET THE MUSIC BUTTON CONTROL ITSELF */
+
+if(
+event.target &&
+event.target.closest &&
+event.target.closest("#musicButton")
+){
+return;
+}
+
+await startMusic();
+
+}
+
+/* LISTEN FOR FIRST USER INTERACTION */
+
+document.addEventListener(
+"click",
+startMusicOnFirstInteraction
+);
+
+document.addEventListener(
+"keydown",
+startMusicOnFirstInteraction
+);
+
+/* ATTEMPT AUTOPLAY WHEN PAGE LOADS */
+
+window.addEventListener(
+"load",
+function(){
+
+startMusic();
+
+}
+);
+
+/* PLAY AND PAUSE BUTTON */
 
 if(music && musicButton){
 
@@ -18,33 +140,19 @@ musicButton.addEventListener(
 "click",
 async function(){
 
-try{
+if(music.paused){
 
-if(musicPlaying){
+musicWasManuallyPaused = false;
 
-music.pause();
-
-musicButton.textContent =
-"🎵 Play Music";
-
-musicPlaying = false;
+await startMusic();
 
 }else{
 
-await music.play();
+musicWasManuallyPaused = true;
 
-musicButton.textContent =
-"⏸ Pause Music";
+music.pause();
 
-musicPlaying = true;
-
-}
-
-}catch(error){
-
-alert(
-"Your browser blocked the music. Tap the Play Music button again."
-);
+updateMusicButton();
 
 }
 
@@ -53,7 +161,25 @@ alert(
 
 }
 
-/* WEDDING COUNTDOWN */
+/* KEEP BUTTON TEXT ACCURATE */
+
+if(music){
+
+music.addEventListener(
+"play",
+updateMusicButton
+);
+
+music.addEventListener(
+"pause",
+updateMusicButton
+);
+
+}
+
+/* ========================================
+WEDDING COUNTDOWN
+======================================== */
 
 const weddingDate =
 new Date(
@@ -87,14 +213,22 @@ const currentDate =
 new Date().getTime();
 
 const difference =
-weddingDate - currentDate;
+weddingDate -
+currentDate;
 
 if(difference <= 0){
 
-daysElement.textContent = "0";
-hoursElement.textContent = "00";
-minutesElement.textContent = "00";
-secondsElement.textContent = "00";
+daysElement.textContent =
+"0";
+
+hoursElement.textContent =
+"00";
+
+minutesElement.textContent =
+"00";
+
+secondsElement.textContent =
+"00";
 
 return;
 
@@ -137,13 +271,28 @@ daysElement.textContent =
 days;
 
 hoursElement.textContent =
-hours.toString().padStart(2, "0");
+hours
+.toString()
+.padStart(
+2,
+"0"
+);
 
 minutesElement.textContent =
-minutes.toString().padStart(2, "0");
+minutes
+.toString()
+.padStart(
+2,
+"0"
+);
 
 secondsElement.textContent =
-seconds.toString().padStart(2, "0");
+seconds
+.toString()
+.padStart(
+2,
+"0"
+);
 
 }
 
@@ -154,24 +303,34 @@ updateCountdown,
 1000
 );
 
-/* PRENUP ALBUM CAROUSEL */
+/* ========================================
+PRENUP ALBUM CAROUSEL
+======================================== */
 
 const albumTrack =
 document.getElementById("albumTrack");
 
 const albumCards =
 Array.from(
-document.querySelectorAll(".album-card")
+document.querySelectorAll(
+".album-card"
+)
 );
 
 const albumCounter =
-document.getElementById("albumCounter");
+document.getElementById(
+"albumCounter"
+);
 
 const previousAlbumButton =
-document.querySelector(".album-prev");
+document.querySelector(
+".album-prev"
+);
 
 const nextAlbumButton =
-document.querySelector(".album-next");
+document.querySelector(
+".album-next"
+);
 
 if(
 albumTrack &&
@@ -182,10 +341,15 @@ nextAlbumButton
 ){
 
 let currentAlbumIndex = 0;
+
 let albumScrollTimer;
+
 let isDragging = false;
+
 let dragStartX = 0;
+
 let startingScrollLeft = 0;
+
 let activePointerId = null;
 
 /* UPDATE ACTIVE PHOTO AND COUNTER */
@@ -217,7 +381,7 @@ albumCards.length - 1;
 
 }
 
-/* MOVE TO A PHOTO */
+/* MOVE TO A SPECIFIC PHOTO */
 
 function moveToAlbumPhoto(
 index,
@@ -234,7 +398,9 @@ albumCards.length - 1
 );
 
 const selectedCard =
-albumCards[currentAlbumIndex];
+albumCards[
+currentAlbumIndex
+];
 
 const leftPosition =
 selectedCard.offsetLeft -
@@ -258,7 +424,7 @@ updateAlbumDisplay();
 
 }
 
-/* FIND THE PHOTO CLOSEST TO THE CENTER */
+/* FIND PHOTO NEAREST TO CENTER */
 
 function findNearestAlbumPhoto(){
 
@@ -267,7 +433,9 @@ albumTrack.scrollLeft +
 albumTrack.clientWidth / 2;
 
 let nearestIndex = 0;
-let nearestDistance = Infinity;
+
+let nearestDistance =
+Infinity;
 
 albumCards.forEach(
 function(card, index){
@@ -282,7 +450,10 @@ trackCenter -
 cardCenter
 );
 
-if(distance < nearestDistance){
+if(
+distance <
+nearestDistance
+){
 
 nearestDistance =
 distance;
@@ -299,7 +470,7 @@ return nearestIndex;
 
 }
 
-/* PREVIOUS BUTTON */
+/* PREVIOUS PHOTO BUTTON */
 
 previousAlbumButton.addEventListener(
 "click",
@@ -312,7 +483,7 @@ currentAlbumIndex - 1
 }
 );
 
-/* NEXT BUTTON */
+/* NEXT PHOTO BUTTON */
 
 nextAlbumButton.addEventListener(
 "click",
@@ -351,13 +522,16 @@ updateAlbumDisplay();
 }
 );
 
-/* LAPTOP AND DESKTOP CLICK-AND-DRAG */
+/* LAPTOP CLICK-AND-DRAG */
 
 albumTrack.addEventListener(
 "pointerdown",
 function(event){
 
-if(event.pointerType !== "mouse"){
+if(
+event.pointerType !==
+"mouse"
+){
 return;
 }
 
@@ -389,7 +563,8 @@ function(event){
 
 if(
 !isDragging ||
-event.pointerId !== activePointerId
+event.pointerId !==
+activePointerId
 ){
 return;
 }
@@ -407,7 +582,9 @@ movement;
 }
 );
 
-function stopAlbumDragging(event){
+/* STOP LAPTOP DRAGGING */
+
+function stopAlbumDragging(){
 
 if(!isDragging){
 return;
@@ -490,13 +667,16 @@ event.preventDefault();
 }
 );
 
-/* KEYBOARD CONTROLS */
+/* KEYBOARD ARROW CONTROLS */
 
 albumTrack.addEventListener(
 "keydown",
 function(event){
 
-if(event.key === "ArrowLeft"){
+if(
+event.key ===
+"ArrowLeft"
+){
 
 event.preventDefault();
 
@@ -506,7 +686,10 @@ currentAlbumIndex - 1
 
 }
 
-if(event.key === "ArrowRight"){
+if(
+event.key ===
+"ArrowRight"
+){
 
 event.preventDefault();
 
@@ -534,6 +717,7 @@ event.preventDefault();
 albumTrack.scrollBy({
 
 left:event.deltaY,
+
 behavior:"auto"
 
 });
@@ -576,10 +760,14 @@ updateAlbumDisplay();
 
 }
 
-/* RSVP FORM */
+/* ========================================
+RSVP FORM
+======================================== */
 
 const rsvpForm =
-document.getElementById("rsvpForm");
+document.getElementById(
+"rsvpForm"
+);
 
 if(rsvpForm){
 
